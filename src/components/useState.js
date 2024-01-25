@@ -9,7 +9,6 @@ import {
   FormHelperText,
 } from "@mui/material";
 
-
 /*** PAGE *************************************************************************************************/
 function UseState() {
   const initState = {
@@ -17,9 +16,12 @@ function UseState() {
     counter2: 0,
     counter3: 0,
     text: "",
+    text2: "",
+    total: 0,
   };
   const [state, setState] = useState(initState);
-  const slice = setStateTool(setState, state, {
+  const slice = setStateHandler(initState, setState, state, {
+    resetState: () => {},
     add1: () => {
       state.counter1 += 1;
       state.counter2 += 1;
@@ -47,11 +49,13 @@ function UseState() {
     inputText: (value) => {
       state.text = value;
     },
-    resetState: () => {
-      setState(initState);
+    sumAll: (num1, num2, num3) => {
+      state.total = num1 + num2 + num3;
+    },
+    sumAll2: () => {
+      state.total = state.counter1 + state.counter2 + state.counter3;
     },
   });
-
 
   return (
     <div>
@@ -62,19 +66,15 @@ function UseState() {
       <div style={{ marginTop: "50px" }}>
         <TextInput slice={slice} state={state} />
       </div>
-      <ResetButton slice={slice} />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <ResetButton slice={slice} />
+        <SumButton slice={slice} state={state} />
+      </div>
     </div>
   );
 }
 
 export default UseState;
-/****************************************************************************************************/
-
-
-
-
-
-
 
 /*** COMPONENTS *************************************************************************************************/
 const Counter1 = memo(
@@ -102,7 +102,7 @@ const Counter1 = memo(
   }
 );
 
-const Counter2 = ({slice, state}) => {
+const Counter2 = ({ slice, state }) => {
   function handleIncrementCounter2() {
     slice.add2();
   }
@@ -123,7 +123,7 @@ const Counter2 = ({slice, state}) => {
   );
 };
 
-const Counter3 = ({slice, state}) => {
+const Counter3 = ({ slice, state }) => {
   function handleIncrementCounter3() {
     slice.add3();
   }
@@ -170,7 +170,7 @@ const TextInput = memo(
   }
 );
 
-const ResetButton = ({slice, state}) => {
+const ResetButton = ({ slice, state }) => {
   const resetState = () => {
     slice.resetState();
   };
@@ -185,22 +185,36 @@ const ResetButton = ({slice, state}) => {
     </Button>
   );
 };
-/****************************************************************************************************/
 
+const SumButton = ({ slice, state }) => {
+  const sumAll = () => {
+    slice.sumAll2();
+  };
 
-
-
-
-
+  return (
+    <div>
+      <Button
+        variant="contained"
+        style={{ marginTop: "50px" }}
+        onClick={sumAll}
+      >
+        Sum
+      </Button>
+      <p>{state.total}</p>
+    </div>
+  );
+};
 
 /*** TOOLS *************************************************************************************************/
-const setStateTool = (setState, state, actions) => {
+const setStateHandler = (initState, setState, state, actions) => {
   const wrappedActions = {};
 
   for (const key in actions) {
     wrappedActions[key] = (...args) => {
       actions[key](...args);
-      if (key !== "resetState") {
+      if (key === "resetState") {
+        setState(initState);
+      } else {
         setState({ ...state });
       }
     };
@@ -208,4 +222,3 @@ const setStateTool = (setState, state, actions) => {
 
   return wrappedActions;
 };
-/****************************************************************************************************/
